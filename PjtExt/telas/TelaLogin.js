@@ -13,7 +13,7 @@ export default function TelaLogin({ navigation, setIsLoggedIn }) {
     if (matricula === matriculaCorreta && senha === senhaCorreta) {
       Alert.alert('Login bem-sucedido', 'Bem-vindo!');
       setIsLoggedIn(true); 
-      navigation.navigate('CadastroProdutos');
+      navigation.navigate('MenuPrincipal');
     } else {
       Alert.alert('Erro de Login', 'Código ou senha incorretos');
     }
