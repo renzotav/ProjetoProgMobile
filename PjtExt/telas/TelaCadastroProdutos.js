@@ -1,15 +1,33 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, Button, FlatList, StyleSheet, Alert, TouchableOpacity } from 'react-native';
+import React, { useState, useContext, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import ProdutosContext from './ContProd';
+import { logProdutosAsyncStorage } from '../utilidades/logAsyncStorage'
 
 export default function TelaCadastroProdutos({ navigation }) {
+  const { produtos, adicionarProduto } = useContext(ProdutosContext); // Acesso ao contexto de produtos
+  const [numeroProduto, setNumeroProduto] = useState('');
   const [nomeProduto, setNomeProduto] = useState('');
   const [quantidadeProduto, setQuantidadeProduto] = useState('');
-  const [quantidadeRemover, setQuantidadeRemover] = useState('');
-  const [produtos, setProdutos] = useState([]);
   const limiteProdutos = 100;
 
-  const adicionarProduto = () => {
-    if (nomeProduto && quantidadeProduto) {
+  useEffect(() => {
+    const carregarProdutos = async () => {
+      try {
+        const produtosSalvos = await AsyncStorage.getItem('produtos');
+        if (produtosSalvos) {
+          setProdutos(JSON.parse(produtosSalvos)); // Carrega os produtos do AsyncStorage
+        }
+      } catch (error) {
+        console.log('Erro ao carregar produtos:', error);
+      }
+    };
+    carregarProdutos();
+    logProdutosAsyncStorage();
+  }, []);
+
+  const handleAdicionarProduto = async () => {
+    if (numeroProduto && nomeProduto && quantidadeProduto) {
       const quantidade = parseInt(quantidadeProduto);
 
       if (isNaN(quantidade) || quantidade <= 0) {
@@ -17,56 +35,38 @@ export default function TelaCadastroProdutos({ navigation }) {
         return;
       }
 
-      const produtoExistente = produtos.find((produto) => produto.nome.toLowerCase() === nomeProduto.toLowerCase());
-
-      if (produtoExistente) {
-        const produtosAtualizados = produtos.map((produto) =>
-          produto.nome.toLowerCase() === nomeProduto.toLowerCase()
-            ? { ...produto, quantidade: produto.quantidade + quantidade }
-            : produto
-        );
-        setProdutos(produtosAtualizados);
-        Alert.alert('Produto atualizado', `Adicionadas ${quantidade} unidades ao produto ${nomeProduto}`);
-      } else {
-        if (produtos.length >= limiteProdutos) {
-          Alert.alert('Limite atingido', 'Você já atingiu o limite de produtos.');
-          return;
-        }
-
-        const novoProduto = { id: Date.now().toString(), nome: nomeProduto, quantidade };
-        setProdutos([...produtos, novoProduto]);
-        Alert.alert('Produto adicionado', `Produto ${nomeProduto} adicionado com sucesso!`);
+      if (produtos.length >= limiteProdutos) {
+        Alert.alert('Limite atingido', 'Você já atingiu o limite de produtos.');
+        return;
       }
 
+      const produtoExistente = produtos.find(produto => produto.numero === numeroProduto);
+      if (produtoExistente) {
+        Alert.alert('Erro', 'Já existe um produto com esse número.');
+        return;
+      }
+
+      // Adiciona o novo produto ao contexto
+      adicionarProduto(numeroProduto, nomeProduto, quantidade);
+
+      // Atualiza a lista de produtos localmente (caso o estado global ainda não tenha sido atualizado)
+      const produtosAtualizados = [...produtos, { numero: numeroProduto, nome: nomeProduto, quantidade }];
+      
+      // Salva a lista de produtos no AsyncStorage
+      try {
+        await AsyncStorage.setItem('produtos', JSON.stringify(produtosAtualizados));
+        Alert.alert('Produto adicionado', `Produto ${nomeProduto} adicionado com sucesso!`);
+      } catch (error) {
+        console.log('Erro ao salvar produto:', error);
+      }
+
+      // Limpa os campos
+      setNumeroProduto('');
       setNomeProduto('');
       setQuantidadeProduto('');
     } else {
       Alert.alert('Erro', 'Por favor, preencha todos os campos.');
     }
-  };
-
-  const removerQuantidade = (id) => {
-    const quantidadeRemovida = parseInt(quantidadeRemover);
-
-    if (isNaN(quantidadeRemovida) || quantidadeRemovida <= 0) {
-      Alert.alert('Erro', 'Por favor, insira uma quantidade válida para remover.');
-      return;
-    }
-
-    setProdutos((produtosAnteriores) =>
-      produtosAnteriores.map((produto) => {
-        if (produto.id === id) {
-          const novaQuantidade = produto.quantidade - quantidadeRemovida;
-          if (novaQuantidade <= 0) {
-            Alert.alert('Quantidade removida', `${produto.nome} foi removido do estoque.`);
-            return null;
-          }
-          return { ...produto, quantidade: novaQuantidade };
-        }
-        return produto;
-      }).filter(Boolean)
-    );
-    setQuantidadeRemover('');
   };
 
   const sair = () => {
@@ -78,40 +78,30 @@ export default function TelaCadastroProdutos({ navigation }) {
       <Text style={styles.titulo}>Cadastro de Produtos</Text>
       <TextInput
         style={styles.input}
+        placeholder="Número do Produto"
+        placeholderTextColor={'yellow'}
+        value={numeroProduto}
+        onChangeText={setNumeroProduto}
+        keyboardType="numeric"
+      />
+      <TextInput
+        style={styles.input}
         placeholder="Nome do Produto"
+        placeholderTextColor={'yellow'}
         value={nomeProduto}
         onChangeText={setNomeProduto}
       />
       <TextInput
         style={styles.input}
         placeholder="Quantidade"
+        placeholderTextColor={'yellow'}
         keyboardType="numeric"
         value={quantidadeProduto}
         onChangeText={setQuantidadeProduto}
       />
-      <Button color="black" title="Adicionar Produto" onPress={adicionarProduto} />
-
-      <FlatList
-        data={produtos}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={styles.produto}>
-            <Text style={styles.nomeProduto}>{item.nome}</Text>
-            <Text style={styles.quantidadeProduto}>Quantidade: {item.quantidade}</Text>
-            <TextInput
-              style={styles.inputRemover}
-              placeholder="Qtd a Remover"
-              keyboardType="numeric"
-              value={quantidadeRemover}
-              onChangeText={setQuantidadeRemover}
-            />
-            <Button color="black" title="Remover Quantidade" onPress={() => removerQuantidade(item.id)} />
-          </View>
-        )}
-      />
-
-      <TouchableOpacity style={styles.botaoSair} onPress={sair}>
-        <Text style={styles.textoBotaoSair}>Sair</Text>
+      
+      <TouchableOpacity style={styles.botao} onPress={handleAdicionarProduto}>
+        <Text style={styles.textoBotao}>Adicionar Produto</Text>
       </TouchableOpacity>
     </View>
   );
@@ -121,8 +111,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: 'grey',
-    
+    backgroundColor: 'black',
   },
   titulo: {
     fontSize: 20,
@@ -130,52 +119,26 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     textAlign: 'center',
     marginTop: 10,
+    color: 'yellow',
   },
   input: {
     padding: 10,
     borderWidth: 1,
     borderRadius: 5,
     marginBottom: 10,
-    borderColor: 'black',
-    
+    borderColor: 'yellow',
+    color: 'yellow',
   },
-  produto: {
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: 'black',
-    marginBottom: 10,
-    backgroundColor: 'white',
+  botao: {
+    backgroundColor: 'yellow',
+    paddingVertical: 12,
     borderRadius: 5,
-  },
-  nomeProduto: {
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  quantidadeProduto: {
-    fontSize: 14,
-    marginBottom: 5,
-  },
-  inputRemover: {
-    padding: 8,
-    borderWidth: 1,
-    borderColor: 'black',
-    borderRadius: 5,
-    marginBottom: 10,
-  },
-  botaoSair: {
-    position: 'absolute',
-    bottom: 20,
-    left: 0,
-    right: 0,
     alignItems: 'center',
+    marginTop: 10,
   },
-  textoBotaoSair: {
-    color: 'white',
+  textoBotao: {
+    color: 'black',
+    fontWeight: 'bold',
     fontSize: 16,
-    padding: 10,
-    backgroundColor: 'black',
-    borderRadius: 5,
   },
 });
-
-

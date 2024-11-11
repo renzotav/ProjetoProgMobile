@@ -1,6 +1,6 @@
-/*
 import React, { useState } from 'react';
-import { View, TextInput, Button, StyleSheet, Alert } from 'react-native';
+import { View, TextInput, Button, StyleSheet, Alert, TouchableOpacity, Text } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function TelaCadastro() {
   const [nome, setNome] = useState('');
@@ -8,12 +8,21 @@ export default function TelaCadastro() {
   const [senha, setSenha] = useState('');
   const [telefone, setTelefone] = useState('');
   const [endereco, setEndereco] = useState('');
-  const [matricula, setMatricula] = useState('');
+  const [codigo, setCodigo] = useState('');
+
+  const cadastrarUsuario = async (nome, email, senha, telefone, endereco, codigo) => {
+    try {
+      const usuario = { nome, email, senha, telefone, endereco, codigo };
+      await AsyncStorage.setItem('usuario', JSON.stringify(usuario));
+      Alert.alert('Sucesso', 'Usuário cadastrado com sucesso!');
+    } catch (error) {
+      console.log('Erro ao salvar usuário:', error);
+    }
+  };
 
   const handleCadastro = () => {
-    if (nome && email && senha && telefone && endereco && matricula) {
-      cadastrarUsuario(nome, email, senha, telefone, endereco, matricula);
-      Alert.alert('Sucesso', 'Usuário cadastrado com sucesso!');
+    if (nome && email && senha && telefone && endereco && codigo) {
+      cadastrarUsuario(nome, email, senha, telefone, endereco, codigo);
     } else {
       Alert.alert('Erro', 'Preencha todos os campos!');
     }
@@ -21,13 +30,16 @@ export default function TelaCadastro() {
 
   return (
     <View style={styles.container}>
-      <TextInput style={styles.input} placeholder="Nome Completo" value={nome} onChangeText={setNome} />
-      <TextInput style={styles.input} placeholder="E-mail" value={email} onChangeText={setEmail} />
-      <TextInput style={styles.input} placeholder="Senha" secureTextEntry value={senha} onChangeText={setSenha} />
-      <TextInput style={styles.input} placeholder="Telefone" keyboardType="phone-pad" value={telefone} onChangeText={setTelefone} />
-      <TextInput style={styles.input} placeholder="Endereço" value={endereco} onChangeText={setEndereco} />
-      <TextInput style={styles.input} placeholder="Matrícula" value={matricula} onChangeText={setMatricula} />
-      <Button color={'black'} title="Cadastrar" onPress={handleCadastro} />
+      <TextInput style={styles.input} placeholder="Nome Completo" placeholderTextColor={'yellow'} value={nome} onChangeText={setNome} />
+      <TextInput style={styles.input} placeholder="E-mail" placeholderTextColor={'yellow'} value={email} onChangeText={setEmail} />
+      <TextInput style={styles.input} placeholder="Senha" placeholderTextColor={'yellow'} secureTextEntry value={senha} onChangeText={setSenha} />
+      <TextInput style={styles.input} placeholder="Telefone" placeholderTextColor={'yellow'} value={telefone} onChangeText={setTelefone} />
+      <TextInput style={styles.input} placeholder="Endereço" placeholderTextColor={'yellow'} value={endereco} onChangeText={setEndereco} />
+      <TextInput style={styles.input} placeholder="Código" placeholderTextColor={'yellow'} value={codigo} onChangeText={setCodigo} />
+      
+      <TouchableOpacity style={styles.botao} onPress={handleCadastro}>
+        <Text style={styles.textoBotao}>Cadastrar</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -35,81 +47,27 @@ export default function TelaCadastro() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'grey',
+    padding: 16,
+    backgroundColor: 'black',
   },
   input: {
-    width: '80%',
     padding: 10,
-    marginVertical: 5,
-    borderColor: 'black',
     borderWidth: 1,
     borderRadius: 5,
+    marginBottom: 10,
+    borderColor: 'yellow',
+    color: 'yellow',
   },
-});
-*/
-
-import React, { useState } from 'react';
-import { View, TextInput, Button, StyleSheet, Alert } from 'react-native';
-
-export default function TelaCadastro() {
-  const [nome, setNome] = useState('');
-  const [email, setEmail] = useState('');
-  const [senha, setSenha] = useState('');
-  const [telefone, setTelefone] = useState('');
-  const [endereco, setEndereco] = useState('');
-  const [matricula, setMatricula] = useState('');
-
-  // Função para cadastrar o usuário
-  const cadastrarUsuario = (nome, email, senha, telefone, endereco, matricula) => {
-    // Aqui você colocaria a lógica para salvar os dados no banco de dados ou fazer uma requisição
-    // Por enquanto, vamos apenas logar os dados para simular o cadastro
-    console.log('Usuário cadastrado com sucesso!');
-    console.log('Nome:', nome);
-    console.log('Email:', email);
-    console.log('Senha:', senha);
-    console.log('Telefone:', telefone);
-    console.log('Endereço:', endereco);
-    console.log('Matrícula:', matricula);
-  };
-
-  const handleCadastro = () => {
-    if (nome && email && senha && telefone && endereco && matricula) {
-      // Chama a função de cadastro passando os dados preenchidos
-      cadastrarUsuario(nome, email, senha, telefone, endereco, matricula);
-      Alert.alert('Sucesso', 'Usuário cadastrado com sucesso!');
-    } else {
-      Alert.alert('Erro', 'Preencha todos os campos!');
-    }
-  };
-
-  return (
-    <View style={styles.container}>
-      <TextInput style={styles.input} placeholder="Nome Completo" value={nome} onChangeText={setNome} />
-      <TextInput style={styles.input} placeholder="E-mail" value={email} onChangeText={setEmail} />
-      <TextInput style={styles.input} placeholder="Senha" secureTextEntry value={senha} onChangeText={setSenha} />
-      <TextInput style={styles.input} placeholder="Telefone" keyboardType="phone-pad" value={telefone} onChangeText={setTelefone} />
-      <TextInput style={styles.input} placeholder="Endereço" value={endereco} onChangeText={setEndereco} />
-      <TextInput style={styles.input} placeholder="Matrícula" value={matricula} keyboardType="numeric" onChangeText={setMatricula} />
-      <Button color={'black'} title="Cadastrar" onPress={handleCadastro} />
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
+  botao: {
+    backgroundColor: 'yellow',
+    paddingVertical: 12,
+    borderRadius: 5,
     alignItems: 'center',
-    backgroundColor: 'grey',
+    marginTop: 10,
   },
-  input: {
-    width: '80%',
-    padding: 10,
-    marginVertical: 5,
-    borderColor: 'black',
-    borderWidth: 1,
-    borderRadius: 5,
+  textoBotao: {
+    color: 'black',
+    fontWeight: 'bold',
+    fontSize: 16,
   },
 });

@@ -6,7 +6,7 @@ export default function TelaInicial({ navigation }) {
     <View style={styles.container}>
       <Image source={require('../assets/logo.webp')} style={styles.logo} /> 
 
-      <Text style={styles.titulo}>Bem vindo ao nosso APP, faça o login abaixo.</Text> 
+      <Text style={styles.titulo}>Bem vindo ao nosso APP {'\n'} faça o login abaixo.</Text> 
       
       <TouchableOpacity style={styles.loginButton} onPress={() => navigation.navigate('Login')}>
         <Text style={styles.loginText}>Login</Text> 
@@ -20,22 +20,22 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-start',
     alignItems: 'center',
-    backgroundColor: 'grey',
+    backgroundColor: 'black',
   },
   logo: {
-    width: 100,
-    height: 100,
+    width: 250,
+    height: 250,
     marginTop: 20,
   },
   titulo: {
     fontSize: 18,
     marginVertical: 50,
     textAlign: 'center',
-    color: '#333',
+    color: 'yellow',
     paddingTop: 50,
   },
   loginButton: {
-    backgroundColor: 'black',
+    backgroundColor: 'yellow',
     padding: 10,
     borderRadius: 5,
     marginVertical: 100,
@@ -43,8 +43,9 @@ const styles = StyleSheet.create({
     
   },
   loginText: {
-    color: 'white',
+    color: 'black',
     textAlign: 'center',
+    fontWeight: 'bold',
 
   },
 });
